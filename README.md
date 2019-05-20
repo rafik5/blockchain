@@ -1,37 +1,80 @@
-## Welcome to GitHub Pages
+pragma solidity ^0.5.2;
 
-You can use the [editor on GitHub](https://github.com/rafik5/blockchain/edit/master/README.md) to maintain and preview the content for your website in Markdown files.
+/**
+* @title ERC20Basic
+* @dev Simpler version of ERC20 interface
+* @dev see https://github.com/ethereum/EIPs/issues/179
+*/
+contract ERC20Basic {
+function totalSupply() public view returns (uint256);
+function balanceOf(address who) public view returns (uint256);
+function transfer(address to, uint256 value) public returns (bool);
+event Transfer(address indexed from, address indexed to, uint256 value);
+}
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
 
-### Markdown
+contract BasicToken is ERC20Basic {
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+mapping(address => uint256) balances;
 
-```markdown
-Syntax highlighted code block
+uint256 totalSupply_;
 
-# Header 1
-## Header 2
-### Header 3
+/**
+* @dev total number of tokens in existence
+* @return totalSupply_ An uint256 representing the total amount of Tokens ever issued.
+*/
+function totalSupply() public view returns (uint256) {
+return totalSupply_;
+}
 
-- Bulleted
-- List
+/**
+* @dev Gets the balance of the specified address.
+* @param _owner The address to query the the balance of.
+* @return An uint256 representing the amount owned by the passed address.
+*/
+function balanceOf(address _owner) public view returns (uint256) {
+return balances[_owner];
+}
 
-1. Numbered
-2. List
+/**
+* @dev transfer token for a specified address
+* @param _to The address to transfer to.
+* @param _value The amount to be transferred.
+*/
+function transfer(address _to, uint256 _value) public returns (bool) {
+require(_to != address(0));
+require(_value <= balances[msg.sender]);
 
-**Bold** and _Italic_ and `Code` text
+balances[msg.sender] = balances[msg.sender] - _value;
+balances[_to] = balances[_to] + _value;
+emit Transfer(msg.sender, _to, _value);
+return true;
+}
 
-[Link](url) and ![Image](src)
-```
+}
 
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
+/**
+* @title Jug Token
+*
+*/
+contract FucksToken is BasicToken {
+string public constant name = "Mon token";
+string public constant symbol = "OHOUI";
+uint8 public constant decimals = 8;
+uint256 public ethRaised_ = 0;
 
-### Jekyll Themes
 
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/rafik5/blockchain/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
+function buyToken() public payable {
+uint tokens = msg.value * 10;
+balances[msg.sender] = balances[msg.sender] + tokens;
+ethRaised_ = ethRaised_ + msg.value;
+totalSupply_ = totalSupply_ + tokens;
+}
 
-### Support or Contact
+constructor() public{
+totalSupply_ = 0;
+balances[msg.sender] = totalSupply_;
+emit Transfer(address(0), msg.sender, totalSupply_);
+}
 
-Having trouble with Pages? Check out our [documentation](https://help.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+}
